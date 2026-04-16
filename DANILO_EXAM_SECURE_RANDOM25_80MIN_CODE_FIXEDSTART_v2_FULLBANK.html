@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Secure Quiz • Random 25 • 80 Minutes</title>
+<style>
+:root { --green:#40B070; --orange:#F09010; --bg1:#0b1220; --bg2:#050814;
+  --card:rgba(255,255,255,.07); --border:rgba(255,255,255,.12);
+  --text:#e5e7eb; --muted:#cbd5e1; }
+html,body{height:100%;margin:0;overflow:hidden;background:
+  radial-gradient(1200px 600px at 20% 10%, rgba(64,176,112,.22), transparent 60%),
+  radial-gradient(1000px 700px at 90% 30%, rgba(240,144,16,.18), transparent 55%),
+  linear-gradient(180deg,var(--bg1),var(--bg2));
+  color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;}
+/* No copy/select */
+html, body, .stage, .ui, .card, .opt, .qTitle, .small, .pill, .badge, .p, label, div, span, table, th, td{
+  -webkit-user-select:none!important;-moz-user-select:none!important;-ms-user-select:none!important;user-select:none!important;
+  -webkit-touch-callout:none!important;
+}
+input, textarea, select { -webkit-user-select:text!important; user-select:text!important; }
+
+.wrap{height:100%;display:flex;align-items:center;justify-content:center;padding:14px;box-sizing:border-box;}
+.app{width:min(1200px,100%);}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;}
+.badge{background:linear-gradient(90deg, rgba(64,176,112,.35), rgba(240,144,16,.30));border:1px solid var(--border);
+  padding:6px 10px;border-radius:999px;font-weight:900;}
+.pills{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.pill{display:inline-flex;gap:8px;align-items:center;padding:6px 10px;border-radius:999px;
+  background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.10);font-size:12px;color:var(--muted);}
+.stage{position:relative;height:min(900px,86vh);background:linear-gradient(180deg, rgba(17,24,39,.82), rgba(17,24,39,.55));
+  border:1px solid var(--border);border-radius:18px;overflow:hidden;box-shadow:0 22px 60px rgba(0,0,0,.45);}
+canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+.ui{position:absolute;inset:0;padding:16px;box-sizing:border-box;display:none;overflow:auto;z-index:1;}
+.ui.active{display:block;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-top:42px;}
+.h1{font-size:22px;font-weight:900;margin:0 0 6px 0;}
+.p{margin:0 0 10px 0;color:var(--muted);line-height:1.35;}
+label{display:block;font-size:13px;color:var(--muted);margin:10px 0 6px;}
+input[type="password"]{width:100%;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.14);
+  background:rgba(0,0,0,.25);color:var(--text);outline:none;}
+button{cursor:pointer;border:0;border-radius:14px;padding:12px 14px;font-weight:900;}
+.btnPrimary{background:linear-gradient(90deg,var(--green),var(--orange));color:#0b1220;}
+.btnGhost{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);color:var(--text);}
+button:disabled{opacity:.45;cursor:not-allowed;filter:saturate(.7);}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;}
+.opt{display:flex;align-items:flex-start;gap:10px;padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,.10);
+  background:rgba(255,255,255,.05);margin:8px 0;}
+.opt.locked{opacity:.80;pointer-events:none;}
+.opt input{margin-top:3px;}
+.opt.correct{background:rgba(34,197,94,.18);border-color:rgba(34,197,94,.45);}
+.opt.wrong{background:rgba(239,68,68,.16);border-color:rgba(239,68,68,.45);}
+.qTitle{font-weight:900;font-size:16px;margin:0 0 8px;white-space:pre-wrap;}
+.small{font-size:12px;color:var(--muted);white-space:pre-wrap;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+@media (max-width:780px){ .grid2{grid-template-columns:1fr;} }
+.lockscreen{position:absolute;inset:0;background:rgba(0,0,0,.82);display:none;align-items:center;justify-content:center;padding:18px;box-sizing:border-box;z-index:2;}
+.lockscreen.active{display:flex;}
+.lockcard{max-width:780px;width:100%;background:rgba(17,24,39,.95);border:1px solid rgba(239,68,68,.35);border-radius:18px;padding:16px;}
+.warn{color:#fecaca;}
+.inlineTimer{margin-top:8px;display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;
+  background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.12);font-size:12px;color:var(--muted);}
+.feedbackRow{margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+.badgeOk{padding:6px 10px;border-radius:999px;background:rgba(34,197,94,.18);border:1px solid rgba(34,197,94,.45);color:var(--text);font-weight:900;}
+.badgeBad{padding:6px 10px;border-radius:999px;background:rgba(239,68,68,.16);border:1px solid rgba(239,68,68,.45);color:var(--text);font-weight:900;}
+.badgeNeutral{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);color:var(--muted);font-weight:800;}
+</style>
+</head>
+<body>
+<div class="wrap"><div class="app">
+  <div class="topbar">
+    <div class="badge" id="titleBadge">Secure Quiz • Random 25 • 80 Minutes</div>
+    <div class="pills">
+      <div class="pill" id="timerPill">Total time: --:--</div>
+      <div class="pill" id="metaPill">Not started</div>
+    </div>
+  </div>
+
+  <div class="stage">
+    <canvas id="cv"></canvas>
+
+    <div class="ui active" id="uiCode">
+      <div class="card">
+        <p class="h1">Access Code</p>
+        <p class="p">Type the code and press <b>Enter</b>.</p>
+
+        <form id="codeForm" autocomplete="off">
+          <label>Code</label>
+          <input id="codeInput" type="password" inputmode="numeric" autocomplete="off" placeholder="Enter access code" />
+          <div class="toolbar"><button class="btnPrimary" type="submit">Enter</button></div>
+        </form>
+
+        <div class="small" id="bankInfo">Bank: -- • Attempt: -- • Global time: 80:00</div>
+      </div>
+    </div>
+
+    <div class="ui" id="uiStart">
+      <div class="card">
+        <p class="h1">Instructions</p>
+        <p class="p">
+          • You have <b>80 minutes total</b> for the whole attempt.<br/>
+          • This attempt draws <b>25 random questions</b> from the bank.<br/>
+          • Leaving the tab/window locks the quiz immediately. The current question counts as wrong. Re-enter the code to continue and the quiz advances automatically.
+        </p>
+        <div class="toolbar"><button class="btnPrimary" id="btnStart" type="button">Start</button></div>
+      </div>
+    </div>
+
+    <div class="ui" id="uiQuiz">
+      <div class="card">
+        <div class="toolbar" style="justify-content:space-between;">
+          <div class="pill" id="qPill">Q</div>
+          <div class="pill" id="securityPill">Security: OK</div>
+        </div>
+        <div id="qbox" style="margin-top:10px;"></div>
+        <div class="toolbar">
+          <button class="btnPrimary" id="btnConfirm" type="button">Check answer</button>
+          <button class="btnGhost" id="btnNext" type="button">Next question</button>
+        </div>
+        <div class="small">After checking, your answer is locked. Wrong answers do not reveal the correct option.</div>
+      </div>
+    </div>
+
+    <div class="ui" id="uiResults">
+      <div class="card">
+        <p class="h1">Results</p>
+        <div class="grid2">
+          <div class="card" style="margin-top:0;background:rgba(240,144,16,.08);border-color:rgba(240,144,16,.24)">
+            <p class="h1" style="font-size:18px;margin:0 0 6px;">Final Grade</p>
+            <p class="p" id="finalGrade" style="font-size:22px;font-weight:900;margin:0;"></p>
+            <p class="small" id="finalMeta"></p>
+          </div>
+          <div class="card" style="margin-top:0;">
+            <p class="h1" style="font-size:16px;margin-bottom:8px;">Security Log</p>
+            <div class="small" id="securityLog">No incidents.</div>
+          </div>
+        </div>
+        <div class="toolbar"><button class="btnPrimary" id="btnRestart" type="button">Restart</button></div>
+        <div class="small">Restart requires the access code again.</div>
+      </div>
+    </div>
+
+    <div class="lockscreen" id="lockscreen">
+      <div class="lockcard">
+        <p class="h1 warn">Security Check</p>
+        <p class="p warn" id="lockReason">Re-enter the access code to continue.</p>
+        <label>Access code</label>
+        <input id="resumeCodeInput" type="password" inputmode="numeric" autocomplete="off" placeholder="Enter access code" />
+        <div class="toolbar">
+          <button class="btnPrimary" id="btnResume" type="button">Continue</button>
+          <button class="btnGhost" id="btnCancelLock" type="button">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div></div>
+
+<script type="application/json" id="bankData">{"access_code": "1991", "sample_size": 25, "total_seconds": 4800, "bank": [{"id": 1, "type": "mcq", "skill": "Third Conditional", "instruction": "Read the situation and choose the correct third conditional sentence.", "stem": "As a child, Leo never learned to ride a bike, so he felt left out when his friends played outside.", "options": ["If Leo learned to ride a bike, he would feel included.", "If Leo had learned to ride a bike, he would have felt more included.", "If Leo has learned to ride a bike, he will have felt more included.", "If Leo would learn to ride a bike, he had felt more included."], "answer": 1}, {"id": 2, "type": "mcq", "skill": "Third Conditional", "instruction": "Choose the sentence that correctly completes the idea using the third conditional.", "stem": "Marta was very shy in her teenage years, so she did not join the school drama club.", "options": ["If Marta joined the school drama club, she became more confident.", "If Marta had joined the school drama club, she would have become more confident.", "If Marta has joined the school drama club, she would become more confident.", "If Marta would have joined the school drama club, she became more confident."], "answer": 1}, {"id": 3, "type": "mcq", "skill": "Third Conditional", "instruction": "Read the sentence and choose the correct ending.", "stem": "If I had kept my childhood drawings,", "options": ["I would show them to my children today.", "I will have shown them to my children today.", "I would have shown them to my children today.", "I showed them to my children today."], "answer": 2}, {"id": 4, "type": "mcq", "skill": "Third Conditional", "instruction": "Choose the correct third conditional sentence.", "stem": "Tom lost contact with his best friend from primary school because he never wrote back.", "options": ["If Tom writes back, he keeps the friendship.", "If Tom had written back, he would have kept the friendship.", "If Tom wrote back, he would have kept the friendship.", "If Tom had wrote back, he would keep the friendship."], "answer": 1}, {"id": 5, "type": "mcq", "skill": "Third Conditional", "instruction": "Choose the correct third conditional form.", "stem": "If my parents ___ more photos of my early childhood, I ___ more memories from that time.", "options": ["kept / would have had", "had kept / would have had", "would keep / had", "have kept / would had"], "answer": 1}, {"id": 6, "type": "mcq", "skill": "Third Conditional", "instruction": "Read the context and choose the best answer.", "stem": "During adolescence, Nina spent all her free time indoors, so she never learned to swim.", "options": ["If Nina had spent more time outdoors, she would have learned to swim.", "If Nina spent more time outdoors, she had learned to swim.", "If Nina has spent more time outdoors, she would learn to swim.", "If Nina would have spent more time outdoors, she learned to swim."], "answer": 0}, {"id": 7, "type": "mcq", "skill": "Third Conditional", "instruction": "Choose the correct sentence.", "stem": "If we had visited my grandparents more often when I was a child,", "options": ["we know more family stories now.", "we would know more family stories now.", "we would have known more family stories.", "we had known more family stories."], "answer": 2}, {"id": 8, "type": "mcq", "skill": "Third Conditional", "instruction": "Choose the sentence with the correct third conditional structure.", "stem": "", "options": ["If I had practiced the piano as a teenager, I would have played better now.", "If I practiced the piano as a teenager, I would have played better now.", "If I had practiced the piano as a teenager, I would have played better in the school concert.", "If I would have practiced the piano as a teenager, I played better in the school concert."], "answer": 2}, {"id": 9, "type": "mcq", "skill": "Third Conditional", "instruction": "Read the situation and choose the best answer.", "stem": "When Carla was a little girl, she was afraid of speaking in public. She stayed silent in class.", "options": ["If Carla had spoken more in class, she would have felt more confident later.", "If Carla spoke more in class, she would have felt more confident later.", "If Carla had spoke more in class, she would have felt more confident later.", "If Carla would speak more in class, she had felt more confident later."], "answer": 0}, {"id": 10, "type": "mcq", "skill": "Third Conditional", "instruction": "Choose the correct option.", "stem": "If my older brother had helped me with homework during primary school,", "options": ["I improved my grades.", "I would have improved my grades.", "I had improved my grades.", "I would improved my grades."], "answer": 1}, {"id": 11, "type": "mcq", "skill": "Third Conditional", "instruction": "Read the context and choose the best option to complete the sentence with the third conditional.", "stem": "I lost my childhood diary years ago. If I ___ it, I ___ my early memories better today.", "options": ["had found / would have understood", "found / would understand", "had kept / would have understood", "keep / had understood"], "answer": 2}, {"id": 12, "type": "mcq", "skill": "Third Conditional", "instruction": "Choose the correct completion.", "stem": "If my family had moved to another city during my teenage years, I ___ my best friend.", "options": ["would have missed", "would miss", "had missed", "miss"], "answer": 0}, {"id": 13, "type": "mcq", "skill": "Third Conditional", "instruction": "Read the situation and complete the idea correctly.", "stem": "When he was a child, Daniel never asked his grandfather about his life.\nIf Daniel had asked more questions, he ___ more about his family history.", "options": ["learned", "would have learned", "would learn", "had learned"], "answer": 1}, {"id": 14, "type": "mcq", "skill": "Third Conditional", "instruction": "Choose the correct option to complete the sentence.", "stem": "If we had recorded our grandmother’s stories when we were younger, we ___ them today.", "options": ["had listened to", "listened to", "would have listened to", "would listen to"], "answer": 3}, {"id": 15, "type": "mcq", "skill": "Third Conditional", "instruction": "Choose the correct completion.", "stem": "If Julia had been less afraid as a child, she ___ the school talent show.", "options": ["joined", "would have joined", "had joined", "would join"], "answer": 1}, {"id": 16, "type": "mcq", "skill": "Third Conditional", "instruction": "Read the sentence and choose the correct form.", "stem": "If I had visited my childhood neighborhood last year, I ___ happier.", "options": ["felt", "would feel", "would have felt", "had feel"], "answer": 2}, {"id": 17, "type": "mcq", "skill": "Third Conditional", "instruction": "Choose the correct completion.", "stem": "If my parents had encouraged me to read more when I was little, I ___ books earlier.", "options": ["loved", "would have loved", "had loved", "would love"], "answer": 1}, {"id": 18, "type": "mcq", "skill": "Third Conditional", "instruction": "Choose the best option.", "stem": "If Sergio had not changed schools during adolescence, he ___ the same group of friends.", "options": ["keeps", "would have kept", "had kept", "would kept"], "answer": 1}, {"id": 19, "type": "mcq", "skill": "Third Conditional", "instruction": "Complete the idea correctly.", "stem": "If my mother had saved my baby clothes, we ___ them in the family album project.", "options": ["used", "would use", "would have used", "had used"], "answer": 2}, {"id": 20, "type": "mcq", "skill": "Third Conditional", "instruction": "Read the context and choose the correct answer.", "stem": "As a child, Paula never learned to cook with her grandmother.\nIf she had spent more time in the kitchen, she ___ those recipes.", "options": ["remembered", "had remembered", "would remember", "would have remembered"], "answer": 3}, {"id": 21, "type": "mcq", "skill": "Third Conditional", "instruction": "Read the conversation and choose the best answer.", "stem": "A: Why do you regret your teenage years a little?\nB: If I had studied harder in secondary school, I ___ a scholarship.", "options": ["got", "would have gotten", "would get", "had gotten"], "answer": 1}, {"id": 22, "type": "mcq", "skill": "Third Conditional", "instruction": "Read the conversation and choose the best answer.", "stem": "A: Do you wish you had kept your childhood toys?\nB: Yes. If I had kept them, I ___ them to my little nephew.", "options": ["showed", "would show", "would have shown", "had shown"], "answer": 2}, {"id": 23, "type": "mcq", "skill": "Third Conditional", "instruction": "Read the conversation and choose the best answer.", "stem": "A: Why were you sad after meeting your old classmates?\nB: Because I thought that if I had stayed in that school, I ___ more memories with them.", "options": ["made", "would make", "would have made", "had made"], "answer": 2}, {"id": 24, "type": "mcq", "skill": "Third Conditional", "instruction": "Read the conversation and choose the best answer.", "stem": "A: Did your father teach you how to fish when you were young?\nB: No. If he had taught me, I ___ that hobby today.", "options": ["enjoyed", "would enjoy", "had enjoyed", "would have enjoyed"], "answer": 1}, {"id": 25, "type": "mcq", "skill": "Third Conditional", "instruction": "Read the conversation and choose the best answer.", "stem": "A: Why didn’t you join the basketball team as a teenager?\nB: I was insecure. If I had felt more confident, I ___ the team.", "options": ["joined", "would have joined", "had joined", "would join"], "answer": 1}, {"id": 26, "type": "mcq", "skill": "Third Conditional", "instruction": "Read the conversation and choose the best answer.", "stem": "A: Do you think your childhood would have been different in the countryside?\nB: Yes. If we had lived there, I ___ more time outdoors.", "options": ["spent", "had spent", "would spend", "would have spent"], "answer": 3}, {"id": 27, "type": "mcq", "skill": "Third Conditional", "instruction": "Read the conversation and choose the best answer.", "stem": "A: Why do you keep saying you should have spoken to your grandmother more?\nB: Because if I had talked to her more, I ___ her voice better now.", "options": ["remembered", "would have remembered", "would remember", "had remembered"], "answer": 2}, {"id": 28, "type": "mcq", "skill": "Third Conditional", "instruction": "Read the conversation and choose the best answer.", "stem": "A: Did changing schools affect your adolescence?\nB: Yes. If I had not changed schools, I ___ less lonely.", "options": ["felt", "would feel", "would have felt", "had felt"], "answer": 2}, {"id": 29, "type": "mcq", "skill": "Third Conditional", "instruction": "Read the conversation and choose the best answer.", "stem": "A: Why do you wish you had written about your childhood?\nB: Because if I had written those memories down, I ___ them more clearly.", "options": ["kept", "would keep", "would have kept", "had kept"], "answer": 2}, {"id": 30, "type": "mcq", "skill": "Third Conditional", "instruction": "Read the conversation and choose the best answer.", "stem": "A: Did you enjoy your teenage years?\nB: More or less. If I had had better friends at that stage, I ___ more secure.", "options": ["felt", "would have felt", "had felt", "would feel"], "answer": 1}, {"id": 31, "type": "mcq", "skill": "Third Conditional", "instruction": "Choose the sentence that is grammatically correct.", "stem": "", "options": ["If I had practiced more as a child, I would sing better in the school concert.", "If I had practiced more as a child, I would have sung better in the school concert.", "If I would have practiced more as a child, I sang better in the school concert.", "If I practiced more as a child, I would have sang better in the school concert."], "answer": 1}, {"id": 32, "type": "mcq", "skill": "Third Conditional", "instruction": "Choose the correct third conditional sentence.", "stem": "", "options": ["If my parents had saved my school reports, I would have read them today.", "If my parents saved my school reports, I would have read them today.", "If my parents had save my school reports, I would read them today.", "If my parents would have saved my school reports, I had read them today."], "answer": 0}, {"id": 33, "type": "mcq", "skill": "Third Conditional", "instruction": "Choose the best sentence.", "stem": "", "options": ["If we had visited our childhood home earlier, we would have seen grandma before she moved.", "If we visited our childhood home earlier, we would have seen grandma before she moved.", "If we had visited our childhood home earlier, we would seen grandma before she moved.", "If we had visit our childhood home earlier, we would have seen grandma before she moved."], "answer": 0}, {"id": 34, "type": "mcq", "skill": "Third Conditional", "instruction": "Choose the correct sentence.", "stem": "", "options": ["If he had listened to his parents during adolescence, he would have made better decisions.", "If he had listened to his parents during adolescence, he would made better decisions.", "If he listened to his parents during adolescence, he would have made better decisions.", "If he would have listened to his parents during adolescence, he made better decisions."], "answer": 0}, {"id": 35, "type": "mcq", "skill": "Third Conditional", "instruction": "Choose the correct sentence.", "stem": "", "options": ["If I had taken more family photos in my twenties, I would have had a richer photo album now.", "If I had taken more family photos in my twenties, I would had a richer photo album now.", "If I took more family photos in my twenties, I would have had a richer photo album now.", "If I would take more family photos in my twenties, I had a richer photo album now."], "answer": 0}, {"id": 36, "type": "mcq", "skill": "Third Conditional", "instruction": "Choose the best option.", "stem": "", "options": ["If Ana had kept her childhood letters, she would have read them to her daughter.", "If Ana had kept her childhood letters, she would read them to her daughter yesterday.", "If Ana kept her childhood letters, she would have read them to her daughter.", "If Ana had keep her childhood letters, she would have read them to her daughter."], "answer": 0}, {"id": 37, "type": "mcq", "skill": "Third Conditional", "instruction": "Choose the grammatically correct sentence.", "stem": "", "options": ["If I had been braver as a teenager, I would have traveled alone.", "If I had been braver as a teenager, I would traveled alone.", "If I was braver as a teenager, I would have traveled alone.", "If I would have been braver as a teenager, I had traveled alone."], "answer": 0}, {"id": 38, "type": "mcq", "skill": "Third Conditional", "instruction": "Choose the correct sentence.", "stem": "", "options": ["If we had asked our parents more questions, we would have understood our childhood better.", "If we had asked our parents more questions, we would understood our childhood better.", "If we asked our parents more questions, we would have understood our childhood better.", "If we would have asked our parents more questions, we had understood our childhood better."], "answer": 0}, {"id": 39, "type": "mcq", "skill": "Third Conditional", "instruction": "Choose the correct sentence.", "stem": "", "options": ["If she had learned to play the violin in childhood, she would have joined the youth orchestra.", "If she had learned to play the violin in childhood, she would joined the youth orchestra.", "If she learned to play the violin in childhood, she would have joined the youth orchestra.", "If she would have learned to play the violin in childhood, she joined the youth orchestra."], "answer": 0}, {"id": 40, "type": "mcq", "skill": "Third Conditional", "instruction": "Choose the best third conditional sentence.", "stem": "", "options": ["If I had visited my old primary school, I would have remembered more details from that time.", "If I visited my old primary school, I would have remembered more details from that time.", "If I had visited my old primary school, I would remembered more details from that time.", "If I would have visited my old primary school, I had remembered more details from that time."], "answer": 0}, {"id": 41, "type": "mcq", "skill": "Passive Voice", "instruction": "Read the active sentence. Choose the correct passive version in the simple present.", "stem": "People use smartphones in almost every country.", "options": ["Smartphones are used in almost every country.", "Smartphones were used in almost every country.", "Smartphones use in almost every country.", "Smartphones are using in almost every country."], "answer": 0}, {"id": 42, "type": "mcq", "skill": "Passive Voice", "instruction": "Read the passive sentence. Choose the correct active version in the simple present.", "stem": "The Eiffel Tower is visited by millions of tourists every year.", "options": ["Millions of tourists visited the Eiffel Tower every year.", "Millions of tourists visit the Eiffel Tower every year.", "The Eiffel Tower visits millions of tourists every year.", "Millions of tourists are visiting the Eiffel Tower every year yesterday."], "answer": 1}, {"id": 43, "type": "mcq", "skill": "Passive Voice", "instruction": "Read the active sentence. Choose the correct passive version in the simple past.", "stem": "Leonardo da Vinci painted the Mona Lisa.", "options": ["The Mona Lisa is painted by Leonardo da Vinci.", "The Mona Lisa painted Leonardo da Vinci.", "The Mona Lisa was painted by Leonardo da Vinci.", "The Mona Lisa was painting by Leonardo da Vinci."], "answer": 2}, {"id": 44, "type": "mcq", "skill": "Passive Voice", "instruction": "Read the passive sentence. Choose the correct active version in the simple past.", "stem": "The telephone was invented by Alexander Graham Bell.", "options": ["Alexander Graham Bell invents the telephone.", "Alexander Graham Bell invented the telephone.", "The telephone invented Alexander Graham Bell.", "Alexander Graham Bell is inventing the telephone."], "answer": 1}, {"id": 45, "type": "mcq", "skill": "Passive Voice", "instruction": "Read the active sentence. Choose the correct passive version.", "stem": "Engineers design many modern bridges with computer software.", "options": ["Many modern bridges designed with computer software.", "Many modern bridges are designed with computer software.", "Many modern bridges were designed with computer software.", "Many modern bridges are designing with computer software."], "answer": 1}, {"id": 46, "type": "mcq", "skill": "Passive Voice", "instruction": "Read the passive sentence. Choose the correct active version.", "stem": "The pyramids were built by ancient Egyptians.", "options": ["Ancient Egyptians build the pyramids.", "Ancient Egyptians built the pyramids.", "The pyramids built ancient Egyptians.", "Ancient Egyptians are building the pyramids."], "answer": 1}, {"id": 47, "type": "mcq", "skill": "Passive Voice", "instruction": "Read the active sentence. Choose the correct passive version in the simple present.", "stem": "People admire this monument for its history and beauty.", "options": ["This monument is admired for its history and beauty.", "This monument was admired for its history and beauty.", "This monument admires for its history and beauty.", "This monument is admiring for its history and beauty."], "answer": 0}, {"id": 48, "type": "mcq", "skill": "Passive Voice", "instruction": "Read the passive sentence. Choose the correct active version in the simple past.", "stem": "The castle was restored by local experts in 2010.", "options": ["Local experts restore the castle in 2010.", "Local experts restored the castle in 2010.", "The castle restored local experts in 2010.", "Local experts are restoring the castle in 2010."], "answer": 1}, {"id": 49, "type": "mcq", "skill": "Passive Voice", "instruction": "Read the active sentence. Choose the correct passive version.", "stem": "Tourists take photos of this landmark every day.", "options": ["Photos of this landmark took every day.", "Photos of this landmark are taken every day.", "Photos of this landmark were taken every day.", "Photos of this landmark are taking every day."], "answer": 1}, {"id": 50, "type": "mcq", "skill": "Passive Voice", "instruction": "Read the passive sentence. Choose the correct active version.", "stem": "The first practical light bulb was developed by Thomas Edison.", "options": ["Thomas Edison develops the first practical light bulb.", "Thomas Edison developed the first practical light bulb.", "The first practical light bulb developed Thomas Edison.", "Thomas Edison is developing the first practical light bulb."], "answer": 1}, {"id": 51, "type": "mcq", "skill": "Passive Voice", "instruction": "Read the situation. Complete the sentence with the correct passive form in the simple present.", "stem": "In art museums, famous paintings protect behind glass.\nFamous paintings ___ behind glass in many museums.", "options": ["protected", "are protected", "were protected", "are protecting"], "answer": 1}, {"id": 52, "type": "mcq", "skill": "Passive Voice", "instruction": "Read the situation. Complete the sentence with the correct passive form in the simple past.", "stem": "Workers built this monument in memory of the soldiers.\nThis monument ___ in memory of the soldiers.", "options": ["is built", "built", "was built", "is building"], "answer": 2}, {"id": 53, "type": "mcq", "skill": "Passive Voice", "instruction": "Read the conversation. Choose the best answer.", "stem": "A: Who created that famous sculpture?\nB: It ___ by a local artist in the 1990s.", "options": ["is created", "was created", "creates", "creating"], "answer": 1}, {"id": 54, "type": "mcq", "skill": "Passive Voice", "instruction": "Read the conversation. Choose the best answer.", "stem": "A: How are electric cars produced today?\nB: They ___ with advanced technology.", "options": ["produce", "produced", "are produced", "are producing"], "answer": 2}, {"id": 55, "type": "mcq", "skill": "Passive Voice", "instruction": "Read the situation. Choose the correct passive form.", "stem": "Many visitors admire the Statue of Liberty every year.\nThe Statue of Liberty ___ by many visitors every year.", "options": ["admires", "is admired", "was admired", "is admiring"], "answer": 1}, {"id": 56, "type": "mcq", "skill": "Passive Voice", "instruction": "Read the situation. Choose the correct passive form.", "stem": "The museum bought the painting at an auction last year.\nThe painting ___ at an auction last year.", "options": ["is bought", "bought", "was bought", "is buying"], "answer": 2}, {"id": 57, "type": "mcq", "skill": "Passive Voice", "instruction": "Read the conversation. Choose the best answer.", "stem": "A: Is the Great Wall visited during all seasons?\nB: Yes, it ___ by tourists throughout the year.", "options": ["visited", "is visited", "was visited", "visiting"], "answer": 1}, {"id": 58, "type": "mcq", "skill": "Passive Voice", "instruction": "Read the conversation. Choose the best answer.", "stem": "A: When was the old church repaired?\nB: It ___ after the earthquake.", "options": ["repairs", "is repaired", "was repaired", "repairing"], "answer": 2}, {"id": 59, "type": "mcq", "skill": "Passive Voice", "instruction": "Read the situation. Choose the correct passive form.", "stem": "People still use paper maps in some remote areas.\nPaper maps ___ in some remote areas.", "options": ["are still used", "were still used", "still use", "are still using"], "answer": 0}, {"id": 60, "type": "mcq", "skill": "Passive Voice", "instruction": "Read the situation. Choose the correct passive form.", "stem": "The artist finished the mural in 2018.\nThe mural ___ in 2018.", "options": ["is finished", "finished", "was finished", "is finishing"], "answer": 2}, {"id": 61, "type": "mcq", "skill": "Passive Voice", "instruction": "Read the sentence. Choose the correct passive form.", "stem": "The Taj Mahal ___ as one of the most beautiful monuments in the world.", "options": ["knows", "is known", "was known", "is knowing"], "answer": 1}, {"id": 62, "type": "mcq", "skill": "Passive Voice", "instruction": "Read the sentence. Choose the correct passive form.", "stem": "The printing press ___ in Europe many centuries ago.", "options": ["invents", "is invented", "was invented", "is inventing"], "answer": 2}, {"id": 63, "type": "mcq", "skill": "Passive Voice", "instruction": "Read the sentence. Choose the correct passive form.", "stem": "This painting ___ in the national gallery today.", "options": ["displays", "displayed", "is displayed", "is displaying"], "answer": 2}, {"id": 64, "type": "mcq", "skill": "Passive Voice", "instruction": "Read the sentence. Choose the correct passive form.", "stem": "The first digital camera ___ by engineers in the 1970s.", "options": ["developed", "is developed", "was developed", "develops"], "answer": 2}, {"id": 65, "type": "mcq", "skill": "Passive Voice", "instruction": "Read the sentence. Choose the correct passive form.", "stem": "The pyramids ___ by historians and tourists from all over the world.", "options": ["study", "studied", "are studied", "are studying"], "answer": 2}, {"id": 66, "type": "mcq", "skill": "Passive Voice", "instruction": "Read the sentence. Choose the correct passive form.", "stem": "This landmark ___ after a long restoration project last year.", "options": ["reopened", "reopens", "was reopened", "is reopening"], "answer": 2}, {"id": 67, "type": "mcq", "skill": "Passive Voice", "instruction": "Read the sentence. Choose the correct passive form.", "stem": "Modern medicine ___ with the help of many inventions.", "options": ["improves", "improved", "is improved", "is improving"], "answer": 2}, {"id": 68, "type": "mcq", "skill": "Passive Voice", "instruction": "Read the sentence. Choose the correct passive form.", "stem": "That ancient temple ___ by archaeologists in the last century.", "options": ["discovers", "discovered", "was discovered", "is discovering"], "answer": 2}, {"id": 69, "type": "mcq", "skill": "Passive Voice", "instruction": "Read the sentence. Choose the correct passive form.", "stem": "Many historical landmarks ___ on postcards and travel websites.", "options": ["show", "are shown", "were shown", "are showing"], "answer": 1}, {"id": 70, "type": "mcq", "skill": "Passive Voice", "instruction": "Read the sentence. Choose the correct passive form.", "stem": "The painting ___ by the museum director before the exhibition opened.", "options": ["approves", "is approved", "was approved", "is approving"], "answer": 2}, {"id": 71, "type": "mcq", "skill": "Passive Voice", "instruction": "Read the conversation. Choose the best answer.", "stem": "A: Is the Mona Lisa protected carefully?\nB: Yes, it ___ in a special area in the museum.", "options": ["keeps", "is kept", "was kept", "keeping"], "answer": 1}, {"id": 72, "type": "mcq", "skill": "Passive Voice", "instruction": "Read the conversation. Choose the best answer.", "stem": "A: When was the airplane invented?\nB: It ___ in the early twentieth century.", "options": ["invents", "is invented", "was invented", "inventing"], "answer": 2}, {"id": 73, "type": "mcq", "skill": "Passive Voice", "instruction": "Read the conversation. Choose the best answer.", "stem": "A: Are these landmarks included in history classes?\nB: Yes, they ___ in many textbooks.", "options": ["describe", "described", "are described", "are describing"], "answer": 2}, {"id": 74, "type": "mcq", "skill": "Passive Voice", "instruction": "Read the conversation. Choose the best answer.", "stem": "A: What happened to the old painting?\nB: It ___ by a professional restorer last month.", "options": ["restores", "restored", "was restored", "is restoring"], "answer": 2}, {"id": 75, "type": "mcq", "skill": "Passive Voice", "instruction": "Choose the sentence that is grammatically correct.", "stem": "", "options": ["The internet was developed by many scientists over time.", "The internet was develop by many scientists over time.", "The internet developed by many scientists over time.", "The internet is develop by many scientists over time."], "answer": 0}, {"id": 76, "type": "mcq", "skill": "Passive Voice", "instruction": "Choose the sentence that is grammatically correct.", "stem": "", "options": ["The Colosseum is visited by thousands of tourists every week.", "The Colosseum visits by thousands of tourists every week.", "The Colosseum was visited by thousands of tourists every week.", "The Colosseum is visiting by thousands of tourists every week."], "answer": 0}, {"id": 77, "type": "mcq", "skill": "Passive Voice", "instruction": "Choose the correct active sentence.", "stem": "The mural was painted by a young artist from Bogotá.", "options": ["A young artist from Bogotá paints the mural.", "A young artist from Bogotá painted the mural.", "The mural painted a young artist from Bogotá.", "A young artist from Bogotá is paint the mural."], "answer": 1}, {"id": 78, "type": "mcq", "skill": "Passive Voice", "instruction": "Choose the correct active sentence.", "stem": "The smartphone is used by people of all ages.", "options": ["People of all ages used the smartphone.", "People of all ages are using the smartphone yesterday.", "People of all ages use the smartphone.", "The smartphone uses people of all ages."], "answer": 2}, {"id": 79, "type": "mcq", "skill": "Passive Voice", "instruction": "Choose the correct passive sentence.", "stem": "Many tourists photographed the landmark during the festival.", "options": ["The landmark is photographed during the festival.", "The landmark was photographed during the festival.", "The landmark photographed during the festival.", "The landmark was photographing during the festival."], "answer": 1}, {"id": 80, "type": "mcq", "skill": "Passive Voice", "instruction": "Choose the correct passive sentence.", "stem": "People recognize this invention around the world today.", "options": ["This invention was recognized around the world today.", "This invention recognizes around the world today.", "This invention is recognized around the world today.", "This invention is recognizing around the world today."], "answer": 2}]}</script>
+
+<script>
+'use strict';
+const DATA = JSON.parse(document.getElementById('bankData').textContent);
+const $ = (id)=>document.getElementById(id);
+
+const uiCode=$("uiCode"), uiStart=$("uiStart"), uiQuiz=$("uiQuiz"), uiResults=$("uiResults");
+const codeInput=$("codeInput"), codeForm=$("codeForm"), btnStart=$("btnStart");
+const timerPill=$("timerPill"), metaPill=$("metaPill"), qPill=$("qPill"), securityPill=$("securityPill");
+const qbox=$("qbox"), btnConfirm=$("btnConfirm"), btnNext=$("btnNext");
+const finalGrade=$("finalGrade"), finalMeta=$("finalMeta"), securityLog=$("securityLog");
+const lockscreen=$("lockscreen"), lockReason=$("lockReason"), resumeCodeInput=$("resumeCodeInput"), btnResume=$("btnResume");
+const btnRestart=$("btnRestart"), btnCancelLock=$("btnCancelLock");
+const bankInfo=$("bankInfo"), titleBadge=$("titleBadge");
+
+// Canvas decoration
+const cv=$("cv"), ctx=cv.getContext("2d");
+function fit(){
+  const r=cv.getBoundingClientRect();
+  const dpr=Math.max(1, window.devicePixelRatio||1);
+  cv.width=Math.round(r.width*dpr); cv.height=Math.round(r.height*dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  draw();
+}
+window.addEventListener("resize", fit);
+function draw(){
+  const w=cv.clientWidth, h=cv.clientHeight;
+  ctx.clearRect(0,0,w,h);
+  ctx.globalAlpha=.14; ctx.strokeStyle="rgba(255,255,255,.14)";
+  const step=Math.max(22, Math.floor(Math.min(w,h)/18));
+  for(let x=0;x<w;x+=step){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();}
+  for(let y=0;y<h;y+=step){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
+  ctx.globalAlpha=1;
+  const grad=ctx.createLinearGradient(0,0,w,0);
+  grad.addColorStop(0,"rgba(64,176,112,.22)");
+  grad.addColorStop(1,"rgba(240,144,16,.18)");
+  ctx.fillStyle=grad; ctx.fillRect(0,0,w,Math.max(54,h*0.08));
+  ctx.fillStyle="rgba(255,255,255,.75)";
+  ctx.font="800 14px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+  ctx.fillText("Secure Canvas Assessment", 16, 30);
+  ctx.fillStyle="rgba(255,255,255,.55)";
+  ctx.font="700 12px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+  ctx.fillText("Canvas is click-through (Start works)", 16, 48);
+}
+fit();
+
+// Helpers
+function show(el){ [uiCode,uiStart,uiQuiz,uiResults].forEach(x=>x.classList.remove("active")); el.classList.add("active"); }
+function pad2(n){ return n<10?("0"+n):(""+n); }
+function fmt(sec){ const m=Math.floor(sec/60), s=sec%60; return pad2(m)+":"+pad2(s); }
+function setTimer(sec){
+  const txt = (sec==null) ? "Total time: --:--" : ("Total time: "+fmt(sec));
+  timerPill.textContent = txt;
+  const inline=document.getElementById("totalTimerInline");
+  if(inline) inline.textContent = txt;
+}
+function setMeta(t){ metaPill.textContent=t; }
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function esc(s){ return (s||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;"); }
+
+// State
+const S={phase:"code", sel:[], idx:0, ans:{}, lock:{}, shuf:{},
+         t:{id:null,left:0}, sec:{started:false,locked:false,inc:[],ignoreUntil:0},
+         score:{correct:0,wrong:0}, restartPending:false};
+
+function clearT(){ if(S.t.id){ clearInterval(S.t.id); S.t.id=null; } }
+function startGlobalT(){
+  clearT();
+  setTimer(S.t.left);
+  S.t.id=setInterval(()=>{
+    if(S.phase!=="quiz") return;
+    S.t.left = Math.max(0, S.t.left-1);
+    setTimer(S.t.left);
+    if(S.t.left===0) finish(true);
+  },1000);
+}
+
+function pick(){
+  const total=DATA.bank.length, needed=Math.min(DATA.sample_size||25, total);
+  const idxs=Array.from({length:total},(_,i)=>i);
+  S.sel=shuffle(idxs).slice(0, needed);
+  S.idx=0; S.ans={}; S.lock={}; S.shuf={}; S.score={correct:0,wrong:0};
+
+  for(const gi of S.sel){
+    const qq=DATA.bank[gi];
+    const perm=shuffle(qq.options.map((_,i)=>i));
+    const newOpts=perm.map(i=>qq.options[i]);
+    const newCorrect=perm.indexOf(Number(qq.answer));
+    S.shuf[String(gi)]={options:newOpts, answer:newCorrect};
+  }
+}
+
+function qNow(){
+  const gi=S.sel[S.idx];
+  const qq=DATA.bank[gi];
+  const sh=S.shuf[String(gi)];
+  return Object.assign({}, qq, {options: sh.options, answer: sh.answer});
+}
+
+function render(){
+  const qq=qNow();
+  const key="q"+S.idx;
+  const locked=!!S.lock[key];
+
+  btnConfirm.disabled = locked;
+  qPill.textContent = "Q "+(S.idx+1)+" / "+S.sel.length+" • "+(qq.skill||"");
+  qbox.innerHTML="";
+  qbox.insertAdjacentHTML("beforeend", '<p class="small">'+esc(qq.instruction)+'</p>');
+  qbox.insertAdjacentHTML("beforeend", '<p class="qTitle">'+esc(qq.stem)+'</p>');
+  qbox.insertAdjacentHTML("beforeend", '<div class="inlineTimer" id="totalTimerInline">Total time: --:--</div>');
+  setTimer(S.t.left);
+
+  const saved=S.ans[key];
+  const chosen=(saved!==undefined && saved!=="__FORCED_WRONG__") ? Number(saved) : null;
+  const group="g_"+key;
+
+  qq.options.forEach((opt,i)=>{
+    const row=document.createElement("label");
+    let extra="";
+    if(locked){
+      if(chosen===i && i===Number(qq.answer)) extra+=" correct";
+      if(chosen===i && i!==Number(qq.answer)) extra+=" wrong";
+    }
+    row.className="opt"+(locked?" locked":"")+extra;
+
+    const r=document.createElement("input");
+    r.type="radio"; r.name=group; r.value=String(i); r.disabled=locked;
+    if(chosen!==null && chosen===i) r.checked=true;
+
+    const span=document.createElement("div");
+    span.innerHTML="<b>"+String.fromCharCode(65+i)+"</b>. "+esc(opt);
+
+    row.appendChild(r); row.appendChild(span);
+    row.addEventListener("click", ()=>{
+      if(S.lock[key]) return;
+      r.checked=true; S.ans[key]=String(i);
+    });
+    qbox.appendChild(row);
+  });
+
+  qbox.insertAdjacentHTML("beforeend",
+    '<div class="feedbackRow">'+
+      '<span class="badgeNeutral" id="badgeResult">Result: —</span>'+
+      '<span class="badgeNeutral" id="badgeCount">Correct: '+S.score.correct+' • Incorrect: '+S.score.wrong+'</span>'+
+    '</div>');
+}
+
+function updateBadges(ok){
+  const badge=document.getElementById("badgeResult");
+  const count=document.getElementById("badgeCount");
+  if(badge){
+    badge.className = ok ? "badgeOk" : "badgeBad";
+    badge.textContent = ok ? "Correct" : "Incorrect";
+  }
+  if(count){ count.textContent = "Correct: "+S.score.correct+" • Incorrect: "+S.score.wrong; }
+}
+
+function confirm(){
+  const qq=qNow();
+  const key="q"+S.idx;
+  if(S.lock[key]) return;
+  if(S.ans[key]===undefined){ alert("Choose an answer first."); return; }
+
+  const chosen=Number(S.ans[key]);
+  const ok = chosen===Number(qq.answer);
+
+  S.lock[key]=true;
+  if(ok) S.score.correct++; else S.score.wrong++;
+
+  render(); updateBadges(ok); setMeta("Saved Q"+(S.idx+1));
+  btnConfirm.disabled=true;
+}
+
+function forceWrong(){
+  const key="q"+S.idx;
+  if(S.lock[key]) return;
+  S.lock[key]=true;
+  S.ans[key]="__FORCED_WRONG__";
+  S.score.wrong++;
+}
+
+function nextQ(){
+  if(S.idx < S.sel.length-1){
+    S.idx++;
+    render();
+    setMeta("In progress");
+  } else finish(false);
+}
+
+function grade(){
+  let correct=0, total=S.sel.length;
+  for(let i=0;i<total;i++){
+    const gi=S.sel[i];
+    const sh=S.shuf[String(gi)];
+    const a=S.ans["q"+i];
+    if(a===undefined || a==="__FORCED_WRONG__") continue;
+    if(Number(a)===Number(sh.answer)) correct++;
+  }
+  const pct = total ? (correct/total) : 0;
+  const g = 1 + 4*pct;
+  return {correct,total,pct,grade:Math.round(g*10)/10};
+}
+
+function finish(timeUp){
+  clearT();
+  const r=grade();
+  finalGrade.textContent=r.grade.toFixed(1)+" / 5.0";
+  finalMeta.textContent="Correct: "+r.correct+" / "+r.total+" • Accuracy: "+Math.round(r.pct*100)+"%"+(timeUp?" • Time up":"");
+  securityLog.textContent=S.sec.inc.length ? S.sec.inc.join("\n") : "No incidents.";
+  S.phase="results";
+  show(uiResults);
+  setMeta("Done");
+}
+
+// Security
+function shouldTrip(){ return S.sec.started && S.phase==="quiz" && !S.sec.locked && Date.now()>=S.sec.ignoreUntil; }
+function logInc(msg){ const t=new Date().toLocaleString(); S.sec.inc.push("["+t+"] "+msg); securityPill.textContent="Security: INCIDENT"; }
+function lock(reason){
+  if(!shouldTrip()) return;
+  S.sec.locked=true;
+  logInc("LOCK: "+reason);
+  forceWrong();
+  lockReason.textContent = reason + " (Question counted as wrong.)";
+  resumeCodeInput.value="";
+  lockscreen.classList.add("active");
+}
+
+function resetToStart(){
+  clearT();
+  S.phase='start';
+  S.sec.started=false; S.sec.locked=false; S.sec.inc=[]; S.sec.ignoreUntil=0;
+  S.sel=[]; S.idx=0; S.ans={}; S.lock={}; S.shuf={}; S.score={correct:0,wrong:0};
+  S.t.left = DATA.total_seconds || 4800;
+  setTimer(S.t.left);
+  codeInput.value=''; resumeCodeInput.value='';
+  securityPill.textContent='Security: OK';
+  setMeta('Ready');
+  lockscreen.classList.remove('active');
+  show(uiStart);
+}
+
+function unlockResume(){
+  const code=resumeCodeInput.value.trim();
+  if(code!==DATA.access_code){ alert("Incorrect code."); resumeCodeInput.value=""; return; }
+  resumeCodeInput.value="";
+  lockscreen.classList.remove("active");
+  if(S.restartPending){
+    S.restartPending=false;
+    resetToStart();
+    return;
+  }
+  S.sec.locked=false;
+  S.sec.ignoreUntil=Date.now()+1200;
+  nextQ();
+}
+
+document.addEventListener("visibilitychange", ()=>{ if(!shouldTrip()) return; if(document.hidden) lock("Tab/window was sent to background."); });
+window.addEventListener("blur", ()=>{ if(!shouldTrip()) return; lock("Window lost focus."); });
+window.addEventListener("pagehide", ()=>{ if(!shouldTrip()) return; lock("Page was hidden (pagehide)."); });
+window.addEventListener("focusout", ()=>{ if(!shouldTrip()) return; if(!document.hasFocus()) lock("Focus moved away from the page."); });
+setInterval(()=>{ if(!shouldTrip()) return; if(document.hidden || !document.hasFocus()) lock("Focus/visibility check failed."); }, 250);
+
+// shortcuts and no copy
+document.addEventListener("keydown", (e)=>{
+  if(S.phase!=="quiz") return;
+  const k=(e.key||"").toLowerCase();
+  const ctrl=e.ctrlKey || e.metaKey;
+  const blocked =
+    (ctrl && ["c","v","x","p","s","u","r","w","t","n","a"].includes(k)) ||
+    (e.key==="F12") ||
+    (ctrl && e.shiftKey && ["i","j","c"].includes(k)) ||
+    (e.key==="PrintScreen") ||
+    (ctrl && e.shiftKey && k==="s") ||
+    (e.metaKey && e.shiftKey && ["3","4","5"].includes(k));
+  if(blocked){ e.preventDefault(); lock("Blocked shortcut / capture attempt detected."); }
+});
+["contextmenu","copy","cut","paste","selectstart","dragstart"].forEach(ev=>{
+  document.addEventListener(ev, (e)=>{ if(S.phase==="quiz" || S.phase==="results") e.preventDefault(); });
+});
+
+// Flow
+function unlockStart(){
+  const code=codeInput.value.trim();
+  if(code!==DATA.access_code){ alert("Incorrect code."); codeInput.value=""; codeInput.focus(); return; }
+  codeInput.value="";
+  show(uiStart);
+  setMeta("Ready");
+}
+
+function startExam(){
+  S.sec.started=true;
+  pick();
+  S.phase="quiz";
+  show(uiQuiz);
+  setMeta("Random "+S.sel.length+" / "+DATA.bank.length);
+  render();
+  startGlobalT();
+}
+
+// ENTER works via submit; Start via click
+codeForm.addEventListener("submit", (e)=>{ e.preventDefault(); unlockStart(); });
+btnStart.addEventListener("click", (e)=>{ e.preventDefault(); startExam(); });
+btnConfirm.addEventListener("click", (e)=>{ e.preventDefault(); confirm(); });
+btnNext.addEventListener("click", (e)=>{ e.preventDefault(); nextQ(); });
+btnResume.addEventListener("click", (e)=>{ e.preventDefault(); unlockResume(); });
+resumeCodeInput.addEventListener("keydown", (e)=>{ if(e.key==="Enter" || e.keyCode===13){ e.preventDefault(); unlockResume(); }});
+
+btnRestart.addEventListener("click", (e)=>{
+  e.preventDefault();
+  S.restartPending=true;
+  lockReason.textContent="Enter the access code to restart the quiz.";
+  resumeCodeInput.value="";
+  lockscreen.classList.add("active");
+  setTimeout(()=>{ try{ resumeCodeInput.focus(); }catch(_){ } },120);
+});
+btnCancelLock.addEventListener("click", (e)=>{
+  e.preventDefault();
+  if(S.restartPending){ S.restartPending=false; lockscreen.classList.remove("active"); return; }
+  lockscreen.classList.remove("active");
+});
+
+// Init labels
+(function(){
+  const bankN = DATA.bank.length;
+  const attempt = Math.min(DATA.sample_size||25, bankN);
+  bankInfo.textContent = "Bank: "+bankN+" • Attempt: "+attempt+" • Global time: 80:00";
+  titleBadge.textContent = "Secure Quiz • Random "+attempt+" • 80 Minutes";
+  S.t.left = DATA.total_seconds || 4800;
+  setTimer(S.t.left);
+  setTimeout(()=>{ try{ codeInput.focus(); }catch(e){} },120);
+})();
+</script>
+</body>
+</html>
